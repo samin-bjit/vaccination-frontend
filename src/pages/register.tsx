@@ -33,22 +33,16 @@ const schema = yup.object().shape({
   last_name: yup.string().required('last name is required'),
   date_of_birth: yup.string().required('date of birth is required'),
   nid: yup
-    .number()
-    .typeError('NID must be a number')
+    .string()
     .required('NID id required')
-    .test(
-      'len',
-      'Must be exactly 16 characters',
-      (val) => String(val).length === 16
+    .test('len', 'Must be exactly 16 characters of number', (val) =>
+      Boolean(val.match(/^\d{16}$/))
     ),
   mobile: yup
-    .number()
-    .typeError('Mobile must be a number')
+    .string()
     .required('Mobile is required')
-    .test(
-      'len',
-      'Must be exactly 11 characters',
-      (val) => String(val).length === 11
+    .test('len', 'Must be exactly 11 characters of number', (val) =>
+      Boolean(val.match(/^\d{11}$/))
     ),
 })
 
