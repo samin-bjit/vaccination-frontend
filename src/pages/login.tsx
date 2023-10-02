@@ -4,10 +4,18 @@ import { faUser } from '@fortawesome/free-regular-svg-icons'
 import { faLock } from '@fortawesome/free-solid-svg-icons'
 import { Button, Col, Container, Form, InputGroup, Row } from 'react-bootstrap'
 import Link from 'next/link'
-import { SyntheticEvent, useState } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/router'
 import axios from 'axios'
 import { setCookie } from 'cookies-next'
+import * as yup from 'yup'
+import { useForm } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+
+const schema = yup.object().shape({
+  email: yup.string().email().required(),
+  password: yup.string().min(6).max(32).required(),
+})
 
 const Login: NextPage = () => {
   const router = useRouter()
@@ -15,15 +23,18 @@ const Login: NextPage = () => {
 
   const getRedirect = () => '/'
 
-  const login = async (e: SyntheticEvent<HTMLFormElement>) => {
-    e.stopPropagation()
-    e.preventDefault()
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, touchedFields },
+  } = useForm({
+    resolver: yupResolver(schema),
+  })
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const login = async (data: any) => {
     setSubmitting(true)
-
-    
-    const formdata = new FormData(e.currentTarget)
-    const res = await axios.post('/api/login', Object.fromEntries(formdata))
+    const res = await axios.post('/api/login', data)
     if (res.status === 200) {
       setCookie('auth', res.data.access_token)
       router.push(getRedirect())
@@ -42,18 +53,25 @@ const Login: NextPage = () => {
                   <h1>Login</h1>
                   <p className="text-black-50">Sign In to your account</p>
 
-                  <form onSubmit={login}>
+                  <Form onSubmit={handleSubmit(login)}>
                     <InputGroup className="mb-3">
                       <InputGroup.Text>
                         <FontAwesomeIcon icon={faUser} fixedWidth />
                       </InputGroup.Text>
                       <Form.Control
-                        name="email"
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...register('email')}
                         required
                         disabled={submitting}
                         placeholder="email"
                         aria-label="email"
+                        isInvalid={
+                          touchedFields?.email && Boolean(errors?.email)
+                        }
                       />
+                      <Form.Control.Feedback type="invalid">
+                        {errors?.email?.message}
+                      </Form.Control.Feedback>
                     </InputGroup>
 
                     <InputGroup className="mb-3">
@@ -61,13 +79,20 @@ const Login: NextPage = () => {
                         <FontAwesomeIcon icon={faLock} fixedWidth />
                       </InputGroup.Text>
                       <Form.Control
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...register('password')}
                         type="password"
-                        name="password"
                         required
                         disabled={submitting}
                         placeholder="Password"
                         aria-label="Password"
+                        isInvalid={
+                          touchedFields?.password && Boolean(errors?.password)
+                        }
                       />
+                      <Form.Control.Feedback type="invalid">
+                        {errors?.password?.message}
+                      </Form.Control.Feedback>
                     </InputGroup>
 
                     <Row>
@@ -81,13 +106,8 @@ const Login: NextPage = () => {
                           Login
                         </Button>
                       </Col>
-                      <Col xs={6} className="text-end">
-                        <Button className="px-0" variant="link" type="button">
-                          Forgot password?
-                        </Button>
-                      </Col>
                     </Row>
-                  </form>
+                  </Form>
                 </div>
               </Col>
               <Col
@@ -97,9 +117,11 @@ const Login: NextPage = () => {
                 <div className="text-center">
                   <h2>Sign up</h2>
                   <p>
-                    Lorem ipsum dolor sit amet, consectetur adipisicing elit,
-                    sed do eiusmod tempor incididunt ut labore et dolore magna
-                    aliqua.
+                    welcome to our site.
+                    <br />
+                    You can manage your vaccination details using our site.
+                    <br />
+                    Not have an account?
                   </p>
                   <Link href="/register">
                     <button

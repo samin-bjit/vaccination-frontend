@@ -9,8 +9,48 @@ import {
   Row,
 } from 'react-bootstrap'
 import { useRouter } from 'next/router'
-import { SyntheticEvent, useState } from 'react'
+import { useState } from 'react'
 import axios from 'axios'
+import * as yup from 'yup'
+import { useForm } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+import { toast } from 'react-toastify'
+
+const schema = yup.object().shape({
+  email: yup.string().email().required(),
+  password: yup.string().min(6).max(32).required(),
+  password_retype: yup
+    .string()
+    .required('Confirm password is required')
+    .min(6)
+    .max(32)
+    .oneOf([yup.ref('password'), ''], 'Passwords must match'),
+  gender: yup
+    .number()
+    .required('Gender is required')
+    .integer('Please select you gender'),
+  first_name: yup.string().required('first name is required'),
+  last_name: yup.string().required('last name is required'),
+  date_of_birth: yup.string().required('date of birth is required'),
+  nid: yup
+    .number()
+    .typeError('NID must be a number')
+    .required('NID id required')
+    .test(
+      'len',
+      'Must be exactly 16 characters',
+      (val) => String(val).length === 16
+    ),
+  mobile: yup
+    .number()
+    .typeError('Mobile must be a number')
+    .required('Mobile is required')
+    .test(
+      'len',
+      'Must be exactly 11 characters',
+      (val) => String(val).length === 11
+    ),
+})
 
 const Register: NextPage = () => {
   const router = useRouter()
@@ -18,14 +58,30 @@ const Register: NextPage = () => {
 
   const getRedirect = () => '/login'
 
-  const register = async (e: SyntheticEvent<HTMLFormElement>) => {
-    e.stopPropagation()
-    e.preventDefault()
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, touchedFields },
+  } = useForm({
+    resolver: yupResolver(schema),
+  })
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const registerHandler = async (data: any) => {
     setSubmitting(true)
 
-    const formdata = new FormData(e.currentTarget)
-    const res = await axios.post('/api/register', Object.fromEntries(formdata))
+    const res = await axios.post('/api/register', data)
     if (res.status === 200) {
+      toast('Registration successfull', {
+        position: 'top-right',
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: 'light',
+      })
       router.push(getRedirect())
     }
     setSubmitting(false)
@@ -41,107 +97,155 @@ const Register: NextPage = () => {
                 <h1>Register</h1>
                 <p className="text-black-50">Create your account</p>
 
-                <form onSubmit={register}>
+                <Form onSubmit={handleSubmit(registerHandler)}>
                   <InputGroup className="mb-3">
                     <Form.Control
-                      type="email"
-                      name="email"
-                      required
+                      // eslint-disable-next-line react/jsx-props-no-spreading
+                      {...register('email')}
                       disabled={submitting}
                       placeholder="Email"
                       aria-label="Email"
+                      isInvalid={Boolean(errors?.email)}
                     />
+                    <Form.Control.Feedback type="invalid">
+                      {errors?.email?.message}
+                    </Form.Control.Feedback>
                   </InputGroup>
 
                   <InputGroup className="mb-3">
                     <Form.Control
+                      // eslint-disable-next-line react/jsx-props-no-spreading
+                      {...register('password')}
                       type="password"
-                      name="password"
-                      required
                       disabled={submitting}
                       placeholder="Password"
                       aria-label="Password"
+                      isInvalid={Boolean(errors?.password)}
                     />
+                    <Form.Control.Feedback type="invalid">
+                      {errors?.password?.message}
+                    </Form.Control.Feedback>
                   </InputGroup>
 
                   <InputGroup className="mb-3">
                     <Form.Control
                       type="password"
-                      name="password_repeat"
-                      required
+                      // eslint-disable-next-line react/jsx-props-no-spreading
+                      {...register('password_retype')}
                       disabled={submitting}
                       placeholder="Repeat password"
                       aria-label="Repeat password"
+                      isInvalid={Boolean(errors?.password_retype)}
                     />
+                    <Form.Control.Feedback type="invalid">
+                      {errors?.password_retype?.message}
+                    </Form.Control.Feedback>
                   </InputGroup>
 
                   <InputGroup className="mb-3">
                     <Form.Label className="me-3">Gender</Form.Label>
+                    <Form.Control
+                      type="hidden"
+                      disabled
+                      isInvalid={Boolean(errors?.gender)}
+                    />
                     <Form.Check
+                      // eslint-disable-next-line react/jsx-props-no-spreading
+                      {...register('gender')}
                       value="1"
                       className="me-3"
                       type="radio"
                       label="Male"
-                      name="gender"
+                      isInvalid={
+                        touchedFields?.gender && Boolean(errors?.gender)
+                      }
                     />
                     <Form.Check
+                      // eslint-disable-next-line react/jsx-props-no-spreading
+                      {...register('gender')}
                       value="2"
                       type="radio"
                       label="Female"
-                      name="gender"
+                      isInvalid={
+                        touchedFields?.gender && Boolean(errors?.gender)
+                      }
                     />
+                    <Form.Control.Feedback type="invalid">
+                      {errors?.gender?.message}
+                    </Form.Control.Feedback>
                   </InputGroup>
 
                   <InputGroup className="mb-3">
                     <Form.Control
-                      name="first_name"
-                      required
+                      // eslint-disable-next-line react/jsx-props-no-spreading
+                      {...register('first_name')}
                       disabled={submitting}
                       placeholder="First name"
                       aria-label="First name"
+                      isInvalid={Boolean(errors?.first_name)}
                     />
+                    <Form.Control.Feedback type="invalid">
+                      {errors?.first_name?.message}
+                    </Form.Control.Feedback>
                   </InputGroup>
 
                   <InputGroup className="mb-3">
                     <Form.Control
-                      name="last_name"
-                      required
+                      // eslint-disable-next-line react/jsx-props-no-spreading
+                      {...register('last_name')}
                       disabled={submitting}
                       placeholder="Last name"
                       aria-label="Last name"
+                      isInvalid={Boolean(errors?.last_name)}
                     />
+                    <Form.Control.Feedback type="invalid">
+                      {errors?.last_name?.message}
+                    </Form.Control.Feedback>
                   </InputGroup>
 
                   <InputGroup className="mb-3">
                     <Form.Label className="w-100">Date of birth</Form.Label>
                     <Form.Control
+                      // eslint-disable-next-line react/jsx-props-no-spreading
+                      {...register('date_of_birth')}
                       type="date"
-                      name="date_of_birth"
-                      required
                       disabled={submitting}
                       placeholder="Date of birth"
                       aria-label="Date of birth"
+                      isInvalid={Boolean(errors?.date_of_birth)}
                     />
+                    <Form.Control.Feedback type="invalid">
+                      {errors?.date_of_birth?.message}
+                    </Form.Control.Feedback>
                   </InputGroup>
 
                   <InputGroup className="mb-3">
                     <Form.Control
+                      // eslint-disable-next-line react/jsx-props-no-spreading
+                      {...register('nid')}
                       name="nid"
-                      required
                       disabled={submitting}
                       placeholder="NID Number"
                       aria-label="NID Number"
+                      isInvalid={Boolean(errors?.nid)}
                     />
+                    <Form.Control.Feedback type="invalid">
+                      {errors?.nid?.message}
+                    </Form.Control.Feedback>
                   </InputGroup>
 
                   <InputGroup className="mb-3">
                     <Form.Control
-                      name="mobile"
-                      required
+                      // eslint-disable-next-line react/jsx-props-no-spreading
+                      {...register('mobile')}
                       disabled={submitting}
                       placeholder="Mobile Number"
                       aria-label="Mobile Number"
+                      isInvalid={Boolean(errors?.mobile)}
                     />
+                    <Form.Control.Feedback type="invalid">
+                      {errors?.mobile?.message}
+                    </Form.Control.Feedback>
                   </InputGroup>
 
                   <Button
@@ -152,7 +256,7 @@ const Register: NextPage = () => {
                   >
                     Create Account
                   </Button>
-                </form>
+                </Form>
               </Card.Body>
             </Card>
           </Col>
