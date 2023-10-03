@@ -21,7 +21,7 @@ const Login: NextPage = () => {
   const router = useRouter()
   const [submitting, setSubmitting] = useState(false)
 
-  const getRedirect = () => '/'
+  const getRedirect = () => '/appointments'
 
   const {
     register,
