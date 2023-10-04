@@ -16,19 +16,19 @@ const redirectIfAuthenticated: Middleware = (request) => {
 
 const authenticated: Middleware = (request) => {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
-  const cspHeader = `
-    default-src 'self';
-    script-src 'self' 'nonce-${nonce}' 'unsafe-eval';
-    style-src 'self' 'unsafe-inline';
-    img-src 'self' blob: data:;
-    font-src 'self';
-    object-src 'none';
-    base-uri 'self';
-    form-action 'self';
-    frame-ancestors 'none';
-    block-all-mixed-content;
-    upgrade-insecure-requests;
-`
+  //   const cspHeader = `
+  //   default-src 'self';
+  //   script-src 'self' 'nonce-${nonce}' 'strict-dynamic';
+  //   style-src 'self' 'nonce-${nonce}';
+  //   img-src 'self' blob: data:;
+  //   font-src 'self';
+  //   object-src 'none';
+  //   base-uri 'self';
+  //   form-action 'self';
+  //   frame-ancestors 'none';
+  //   block-all-mixed-content;
+  //   upgrade-insecure-requests;
+  // `
 
   const requestHeaders = new Headers(request.headers)
   requestHeaders.set('x-nonce', nonce)
@@ -37,10 +37,10 @@ const authenticated: Middleware = (request) => {
     'Strict-Transport-Security',
     'max-age=31536000; includeSubDomains;preload'
   )
-  requestHeaders.set(
-    'Content-Security-Policy',
-    cspHeader.replace(/\s{2,}/g, ' ').trim()
-  )
+  // requestHeaders.set(
+  //   'Content-Security-Policy',
+  //   cspHeader.replace(/\s{2,}/g, ' ').trim()
+  // )
 
   const authSession = request.cookies.get('auth')?.value
 
@@ -50,10 +50,10 @@ const authenticated: Middleware = (request) => {
       name: 'redirect',
       value: request.url,
     })
-    response.headers.set(
-      'Content-Security-Policy',
-      cspHeader.replace(/\s{2,}/g, ' ').trim()
-    )
+    // response.headers.set(
+    //   'Content-Security-Policy',
+    //   cspHeader.replace(/\s{2,}/g, ' ').trim()
+    // )
     response.headers.set('X-Frame-Options', 'SAMEORIGIN')
     response.headers.set(
       'Strict-Transport-Security',
@@ -72,19 +72,20 @@ const authenticated: Middleware = (request) => {
 
 export default function middleware(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
-  const cspHeader = `
-    default-src 'self';
-    script-src 'self' 'nonce-${nonce}' 'unsafe-eval';
-    style-src 'self' 'unsafe-inline';
-    img-src 'self' blob: data:;
-    font-src 'self';
-    object-src 'none';
-    base-uri 'self';
-    form-action 'self';
-    frame-ancestors 'none';
-    block-all-mixed-content;
-    upgrade-insecure-requests;
-`
+  //   const cspHeader = `
+  //   default-src 'self';
+  //   script-src-elem *;
+  //   script-src 'self' 'nonce-${nonce}' 'strict-dynamic';
+  //   style-src 'self' 'nonce-${nonce}' 'sha256-4/2nIlfwIVTJ1+JcNQ6LkeVWzNS148LKAJeL5yofdN4=';
+  //   img-src 'self' blob: data:;
+  //   font-src 'self';
+  //   object-src 'none';
+  //   base-uri 'self';
+  //   form-action 'self';
+  //   frame-ancestors 'none';
+  //   block-all-mixed-content;
+  //   upgrade-insecure-requests;
+  // `
 
   const requestHeaders = new Headers(request.headers)
   requestHeaders.set('x-nonce', nonce)
@@ -93,10 +94,10 @@ export default function middleware(request: NextRequest) {
     'Strict-Transport-Security',
     'max-age=31536000; includeSubDomains;preload'
   )
-  requestHeaders.set(
-    'Content-Security-Policy',
-    cspHeader.replace(/\s{2,}/g, ' ').trim()
-  )
+  // requestHeaders.set(
+  //   'Content-Security-Policy',
+  //   cspHeader.replace(/\s{2,}/g, ' ').trim()
+  // )
 
   // Uncomment if you want to redirect if authenticated.
   // if ([
